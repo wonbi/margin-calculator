@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>상품별 마진 계산기</title>
+<style>
+:root{--ink:#152521;--muted:#71807b;--line:#dce5df;--green:#168e60;--purple:#8050ad}
+*{box-sizing:border-box}body{margin:0;background:#f1f4f1;color:var(--ink);font-family:Arial,'Noto Sans KR',sans-serif}.wrap{max-width:1450px;margin:auto;padding:30px}
+header{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}h1{margin:0;font-size:28px;letter-spacing:-1px}p{color:var(--muted);font-size:13px}.actions{display:flex;gap:8px}.btn{border:0;background:#17342b;color:white;padding:11px 15px;border-radius:5px;font-weight:bold;cursor:pointer}.btn:hover{background:#0d6d4c}
+.notice{display:inline-block;padding:9px 12px;background:#fff5c9;color:#735d12;border-radius:4px;font-size:11px;margin-bottom:15px}.sheet{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:auto}table{border-collapse:collapse;width:100%;min-width:1110px}th{background:#edf4ef;color:#63746d;font-size:11px;text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th small{font-weight:400;color:#91a09a}td{padding:8px;border-bottom:1px solid #edf1ee;vertical-align:middle}td:first-child{text-align:center;color:#9aa6a0;font-size:12px;width:40px}input{width:100%;border:1px solid var(--line);border-radius:4px;padding:10px 8px;font-size:12px;min-width:100px}input:focus{outline:2px solid #c7eedb;border-color:#31a873}.name{min-width:190px}.result{min-width:145px;background:#f0fbf5;border-radius:4px;padding:9px}.result.c{background:#faf4ff}.result b{display:block;font-size:13px}.result small{display:block;color:#70827a;font-size:10px;margin-top:3px}.delete{border:0;background:none;color:#adb8b2;font-size:20px;cursor:pointer}.delete:hover{color:#b44}.foot{display:flex;justify-content:space-between;margin-top:13px;color:#91a09a;font-size:11px}.naver{color:var(--green)}.coupang{color:var(--purple)}@media(max-width:700px){.wrap{padding:18px}header{display:block}.actions{margin-top:15px}}
+</style>
+</head>
+<body><div class="wrap">
+<header><div><h1>상품별 마진 계산기</h1><p>상품을 한 행씩 입력하면 네이버·쿠팡 판매 예상 순이익이 자동 계산됩니다.</p></div><div class="actions"><button class="btn" id="add">＋ 상품 행 추가</button><button class="btn" id="csv">CSV 저장</button></div></header>
+<div class="notice">네이버 수수료는 VAT 포함 · 쿠팡 판매수수료는 VAT 별도이므로 10.8%를 11.88%로 환산해 계산합니다.</div>
+<div class="sheet"><table><thead><tr><th>#</th><th>상품명</th><th>원가<br><small>원</small></th><th>판매가<br><small>원</small></th><th>배송비<br><small>원</small></th><th>부대비용<br><small>원</small></th><th class="naver">네이버<br><small>순이익 / 마진율</small></th><th class="coupang">쿠팡<br><small>순이익 / 마진율</small></th><th>삭제</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="foot"><span id="count">상품 0개</span><span>네이버 6.63% (3.63% + 3%) · 쿠팡 11.88% (10.8% + VAT)</span></div>
+</div>
+<script>
+const rows=document.querySelector('#rows'),won=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
+function calc(d,rate){const c=+d.cost||0,p=+d.price||0,s=+d.ship||0,x=+d.extra||0,n=p-c-s-x-(p+s)*rate/100;return[n,p?p/n*0+p? n/p*100:0]}
+function render(){[...rows.children].forEach((r,i)=>{r.firstElementChild.textContent=i+1;const d={};r.querySelectorAll('[data-k]').forEach(x=>d[x.dataset.k]=x.value);const n=calc(d,6.63),c=calc(d,11.88);r.querySelector('.nr').innerHTML='<div class="result"><b>'+won(n[0])+'</b><small>마진율 '+n[1].toFixed(1)+'%</small></div>';r.querySelector('.cr').innerHTML='<div class="result c"><b>'+won(c[0])+'</b><small>마진율 '+c[1].toFixed(1)+'%</small></div>'});document.querySelector('#count').textContent='상품 '+rows.children.length+'개'}
+function add(d={name:'',cost:'',price:'',ship:3500,extra:0}){const r=document.createElement('tr');r.innerHTML='<td></td><td><input class="name" data-k="name" placeholder="상품명" value="'+d.name+'"></td><td><input data-k="cost" type="number" value="'+d.cost+'"></td><td><input data-k="price" type="number" value="'+d.price+'"></td><td><input data-k="ship" type="number" value="'+d.ship+'"></td><td><input data-k="extra" type="number" value="'+d.extra+'"></td><td class="nr"></td><td class="cr"></td><td><button class="delete">×</button></td>';rows.append(r);r.querySelectorAll('input').forEach(x=>x.oninput=render);r.querySelector('.delete').onclick=()=>{r.remove();render()};render()}
+document.querySelector('#add').onclick=()=>add();
+document.querySelector('#csv').onclick=()=>{const out=[['상품명','원가','판매가','배송비','부대비용','네이버 순이익','네이버 마진율','쿠팡 순이익','쿠팡 마진율']];[...rows.children].forEach(r=>{const d={};r.querySelectorAll('[data-k]').forEach(x=>d[x.dataset.k]=x.value);const n=calc(d,6.63),c=calc(d,11.88);out.push([d.name,d.cost,d.price,d.ship,d.extra,Math.round(n[0]),n[1].toFixed(1)+'%',Math.round(c[0]),c[1].toFixed(1)+'%'])});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+out.map(x=>x.join(',')).join('\n')],{type:'text/csv'}));a.download='상품별_마진목록.csv';a.click()};
+add({name:'활 새우 500g',cost:7000,price:16900,ship:3500,extra:500});
+</script></body></html>
