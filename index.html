@@ -19,7 +19,7 @@ header{display:flex;justify-content:space-between;align-items:end;margin-bottom:
 </div>
 <script>
 const rows=document.querySelector('#rows'),won=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
-function calc(d,rate){const c=+d.cost||0,p=+d.price||0,s=+d.ship||0,x=+d.extra||0,n=p-c-s-x-(p+s)*rate/100;return[n,p?p/n*0+p? n/p*100:0]}
+function calc(d,rate){const c=+d.cost||0,p=+d.price||0,s=+d.ship||0,x=+d.extra||0,n=p-c-s-x-(p+s)*rate/100;return[n,p?n/p*100:0]}
 function render(){[...rows.children].forEach((r,i)=>{r.firstElementChild.textContent=i+1;const d={};r.querySelectorAll('[data-k]').forEach(x=>d[x.dataset.k]=x.value);const n=calc(d,6.63),c=calc(d,11.88);r.querySelector('.nr').innerHTML='<div class="result"><b>'+won(n[0])+'</b><small>마진율 '+n[1].toFixed(1)+'%</small></div>';r.querySelector('.cr').innerHTML='<div class="result c"><b>'+won(c[0])+'</b><small>마진율 '+c[1].toFixed(1)+'%</small></div>'});document.querySelector('#count').textContent='상품 '+rows.children.length+'개'}
 function add(d={name:'',cost:'',price:'',ship:3500,extra:0}){const r=document.createElement('tr');r.innerHTML='<td></td><td><input class="name" data-k="name" placeholder="상품명" value="'+d.name+'"></td><td><input data-k="cost" type="number" value="'+d.cost+'"></td><td><input data-k="price" type="number" value="'+d.price+'"></td><td><input data-k="ship" type="number" value="'+d.ship+'"></td><td><input data-k="extra" type="number" value="'+d.extra+'"></td><td class="nr"></td><td class="cr"></td><td><button class="delete">×</button></td>';rows.append(r);r.querySelectorAll('input').forEach(x=>x.oninput=render);r.querySelector('.delete').onclick=()=>{r.remove();render()};render()}
 document.querySelector('#add').onclick=()=>add();
